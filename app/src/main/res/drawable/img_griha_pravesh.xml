@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="400dp"
+    android:height="300dp"
+    android:viewportWidth="400"
+    android:viewportHeight="300">
+    <path android:pathData="M0,0h400v300h-400z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="400"
+                android:endY="300"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#6E1414" />
+                <item android:offset="0.5" android:color="#9A2B17" />
+                <item android:offset="1.0" android:color="#D97706" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Decorative Sunburst Halo -->
+    <path
+        android:fillColor="#26FFD54F"
+        android:pathData="M200,150m-110,0a110,110 0,1 1,220 0a110,110 0,1 1,-220 0" />
+    <path
+        android:fillColor="#33FFD54F"
+        android:pathData="M200,150m-80,0a80,80 0,1 1,160 0a80,80 0,1 1,-160 0" />
+    <!-- Toran Arch at top -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M0,0 L400,0 L400,28 L0,28 Z" />
+    <!-- Mango Leaves & Marigold Toran -->
+    <path
+        android:fillColor="#15803D"
+        android:pathData="M40,28 L55,58 L70,28 Z M110,28 L125,58 L140,28 Z M185,28 L200,58 L215,28 Z M260,28 L275,58 L290,28 Z M330,28 L345,58 L360,28 Z" />
+    <!-- Sacred Temple Gateway / Griha Pravesh Arch -->
+    <path
+        android:fillColor="#FFFBEB"
+        android:pathData="M140,240 L140,130 C140,95 200,72 200,72 C200,72 260,95 260,130 L260,240 Z" />
+    <path
+        android:fillColor="#7B1E1E"
+        android:pathData="M154,240 L154,136 C154,108 200,88 200,88 C200,88 246,108 246,136 L246,240 Z" />
+    <!-- Golden Kalash in Center -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M182,165 L218,165 C230,175 234,195 225,212 C219,221 210,226 200,226 C190,226 181,221 175,212 C166,195 170,175 182,165 Z" />
+    <path
+        android:fillColor="#FDE68A"
+        android:pathData="M200,122 C200,122 214,137 214,148 C214,156 208,162 200,162 C192,162 186,156 186,148 C186,137 200,122 200,122 Z" />
+    <!-- Two Glowing Diyas on Sides -->
+    <path
+        android:fillColor="#FBBF24"
+        android:pathData="M85,220 C85,235 125,235 125,220 Z M275,220 C275,235 315,235 315,220 Z" />
+    <path
+        android:fillColor="#FEF08A"
+        android:pathData="M105,198 C105,198 113,209 113,215 C113,219 109,221 105,221 C101,221 97,219 97,215 C97,209 105,198 105,198 Z M295,198 C295,198 303,209 303,215 C303,219 299,221 295,221 C291,221 287,219 287,215 C287,209 295,198 295,198 Z" />
+</vector>

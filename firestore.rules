@@ -1,0 +1,153 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net (Default Deny)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Global Primitives
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 3. Entity Validation Blueprints
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+             data.phone is string && data.phone.size() >= 10 && data.phone.size() <= 15 &&
+             data.address is string && data.address.size() >= 1 && data.address.size() <= 300 &&
+             data.gotra is string && data.gotra.size() >= 1 && data.gotra.size() <= 80 &&
+             data.role is string && (data.role == 'YAJMAN' || data.role == 'PANDIT') &&
+             data.preferredPuja is string && data.preferredPuja.size() >= 1 && data.preferredPuja.size() <= 120 &&
+             data.specialInstructions is string && data.specialInstructions.size() <= 500 &&
+             data.isPanditOnline is bool &&
+             data.otpVerified is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidBooking(data) {
+      return data.id is string && data.id.size() >= 1 && data.id.size() <= 128 &&
+             data.userId is string && data.userId == request.auth.uid && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.yajmanName is string && data.yajmanName.size() >= 1 && data.yajmanName.size() <= 100 &&
+             data.yajmanPhone is string && data.yajmanPhone.size() >= 10 && data.yajmanPhone.size() <= 15 &&
+             data.yajmanAddress is string && data.yajmanAddress.size() >= 1 && data.yajmanAddress.size() <= 300 &&
+             data.gotra is string && data.gotra.size() >= 1 && data.gotra.size() <= 80 &&
+             data.pujaId is string && data.pujaId.size() >= 1 && data.pujaId.size() <= 80 &&
+             data.pujaTitle is string && data.pujaTitle.size() >= 1 && data.pujaTitle.size() <= 120 &&
+             data.pujaDate is string && data.pujaDate.size() >= 4 && data.pujaDate.size() <= 40 &&
+             data.timeSlot is string && data.timeSlot.size() >= 4 && data.timeSlot.size() <= 40 &&
+             data.includeSamagri is bool &&
+             data.specialInstructions is string && data.specialInstructions.size() <= 500 &&
+             data.basePrice is int && data.basePrice >= 100 && data.basePrice <= 500000 &&
+             data.samagriPrice is int && data.samagriPrice >= 0 && data.samagriPrice <= 200000 &&
+             data.totalAmount is int && data.totalAmount == data.basePrice + data.samagriPrice &&
+             data.platformCommission is int && data.platformCommission >= 0 && data.platformCommission <= data.totalAmount &&
+             data.panditPayout is int && data.panditPayout == data.totalAmount - data.platformCommission &&
+             data.paymentMethod is string && (
+               data.paymentMethod == 'UPI_GPAY' ||
+               data.paymentMethod == 'UPI_PHONEPE' ||
+               data.paymentMethod == 'UPI_PAYTM' ||
+               data.paymentMethod == 'CARD' ||
+               data.paymentMethod == 'NET_BANKING'
+             ) &&
+             data.paymentStatus is string && (data.paymentStatus == 'PAID' || data.paymentStatus == 'PENDING') &&
+             data.bookingStatus is string && (
+               data.bookingStatus == 'UPCOMING' ||
+               data.bookingStatus == 'COMPLETED' ||
+               data.bookingStatus == 'CANCELLED'
+             ) &&
+             data.panditName is string && data.panditName.size() >= 1 && data.panditName.size() <= 100 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // 4. User Profile Rules (PII Isolated to Owner)
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if false;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().keys().hasAll([
+                         'userId', 'name', 'phone', 'address', 'gotra', 'role',
+                         'preferredPuja', 'specialInstructions', 'isPanditOnline',
+                         'otpVerified', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'name', 'phone', 'address', 'gotra', 'role',
+                         'preferredPuja', 'specialInstructions', 'isPanditOnline',
+                         'otpVerified', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       isValidUserProfile(incoming()) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'name', 'phone', 'address', 'gotra', 'role',
+                         'preferredPuja', 'specialInstructions', 'isPanditOnline',
+                         'otpVerified', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+    }
+
+    // 5. Puja Bookings Rules (Multi-User Isolated + Terminal State Locked)
+    match /bookings/{bookingId} {
+      allow get: if isSignedIn() && isValidId(bookingId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(bookingId) &&
+                       incoming().id == bookingId &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'id', 'userId', 'yajmanName', 'yajmanPhone', 'yajmanAddress',
+                         'gotra', 'pujaId', 'pujaTitle', 'pujaDate', 'timeSlot',
+                         'includeSamagri', 'specialInstructions', 'basePrice',
+                         'samagriPrice', 'totalAmount', 'platformCommission',
+                         'panditPayout', 'paymentMethod', 'paymentStatus',
+                         'bookingStatus', 'panditName', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'id', 'userId', 'yajmanName', 'yajmanPhone', 'yajmanAddress',
+                         'gotra', 'pujaId', 'pujaTitle', 'pujaDate', 'timeSlot',
+                         'includeSamagri', 'specialInstructions', 'basePrice',
+                         'samagriPrice', 'totalAmount', 'platformCommission',
+                         'panditPayout', 'paymentMethod', 'paymentStatus',
+                         'bookingStatus', 'panditName', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidBooking(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(bookingId) &&
+                       isValidBooking(incoming()) &&
+                       existing().userId == request.auth.uid &&
+                       incoming().userId == existing().userId &&
+                       incoming().id == existing().id &&
+                       incoming().createdAt == existing().createdAt &&
+                       existing().bookingStatus == 'UPCOMING' &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['bookingStatus', 'updatedAt']);
+
+      allow delete: if isSignedIn() && isValidId(bookingId) && existing().userId == request.auth.uid;
+    }
+  }
+}

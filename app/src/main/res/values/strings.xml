@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Vaidik Puja</string>
+    <string name="hero_subtitle">माँ बगलामुखी हवन, रुद्राभिषेक एवं वैदिक अनुष्ठान बुकिंग</string>
+    <string name="book_puja_cta">पूजा बुक करें (Book Puja)</string>
+    <string name="about_us_title">हमारे बारे में (About Vaidik Puja)</string>
+    <string name="contact_us_title">संपर्क करें (Contact Us)</string>
+    <string name="yajman_registration_title">यजमान पंजीकरण एवं संकल्प विवरण</string>
+    <string name="payment_integration_title">भुगतान एवं कमीशन विवरण (Payment &amp; Split)</string>
+    <string name="pandit_dashboard_title">आचार्य / पंडित जी लाइव डैशबोर्ड</string>
+</resources>

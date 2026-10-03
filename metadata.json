@@ -1,0 +1,6 @@
+{
+  "name": "Vaidik Puja",
+  "description": "Puja Booking platform connecting Yajman (Devotees) and Pandit Ji with slot booking, payment split, and live architecture specs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

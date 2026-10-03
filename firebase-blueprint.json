@@ -1,0 +1,219 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Profile for Yajman (Devotee) and Pandit Ji (Priest) including mobile OTP verification status, gotra, address, and Pandit Ji availability.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID of the user."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the Yajman or Pandit Ji."
+        },
+        "phone": {
+          "type": "string",
+          "description": "10-digit Indian mobile number verified via OTP flow."
+        },
+        "address": {
+          "type": "string",
+          "description": "Residential or Puja venue address."
+        },
+        "gotra": {
+          "type": "string",
+          "description": "Vedic Gotra (e.g., Kashyap, Bharadwaj, Vashishtha)."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["YAJMAN", "PANDIT"],
+          "description": "Active role selected by the user."
+        },
+        "preferredPuja": {
+          "type": "string",
+          "description": "Default or preferred Puja service name."
+        },
+        "specialInstructions": {
+          "type": "string",
+          "description": "Default Sankalp or special instructions."
+        },
+        "isPanditOnline": {
+          "type": "boolean",
+          "description": "Online/Offline availability toggle for Pandit Ji dashboard."
+        },
+        "otpVerified": {
+          "type": "boolean",
+          "description": "Whether mobile number OTP verification is completed."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when profile was created (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when profile was last updated (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "name",
+        "phone",
+        "address",
+        "gotra",
+        "role",
+        "preferredPuja",
+        "specialInstructions",
+        "isPanditOnline",
+        "otpVerified",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PujaBooking": {
+      "title": "PujaBooking",
+      "description": "A Puja booking connecting Yajman and Pandit Ji with date, time slot, price calculation, payment method, and platform commission split.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique booking document ID."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID owning this booking record."
+        },
+        "yajmanName": {
+          "type": "string",
+          "description": "Name of the Yajman (Devotee) for Sankalp."
+        },
+        "yajmanPhone": {
+          "type": "string",
+          "description": "Mobile number of the Yajman for direct call by Pandit Ji."
+        },
+        "yajmanAddress": {
+          "type": "string",
+          "description": "Address where the Puja/Havan will be performed."
+        },
+        "gotra": {
+          "type": "string",
+          "description": "Gotra of the Yajman for Vaidik Sankalp."
+        },
+        "pujaId": {
+          "type": "string",
+          "description": "Identifier of the selected Puja service."
+        },
+        "pujaTitle": {
+          "type": "string",
+          "description": "Title of the selected Puja (e.g., Bagalamukhi Havan Poojan)."
+        },
+        "pujaDate": {
+          "type": "string",
+          "description": "Selected date in YYYY-MM-DD or readable format."
+        },
+        "timeSlot": {
+          "type": "string",
+          "description": "Selected muhurat time slot (e.g., 06:00 AM, 08:00 AM)."
+        },
+        "includeSamagri": {
+          "type": "boolean",
+          "description": "Whether Shuddh Havan & Puja Samagri is included."
+        },
+        "specialInstructions": {
+          "type": "string",
+          "description": "Special instructions or Sankalp notes from Yajman."
+        },
+        "basePrice": {
+          "type": "integer",
+          "description": "Base Dakshina amount in INR."
+        },
+        "samagriPrice": {
+          "type": "integer",
+          "description": "Samagri kit cost in INR."
+        },
+        "totalAmount": {
+          "type": "integer",
+          "description": "Total amount paid by Yajman in INR."
+        },
+        "platformCommission": {
+          "type": "integer",
+          "description": "15% platform service commission in INR."
+        },
+        "panditPayout": {
+          "type": "integer",
+          "description": "Net payout to Pandit Ji in INR (Total - Platform Commission)."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["UPI_GPAY", "UPI_PHONEPE", "UPI_PAYTM", "CARD", "NET_BANKING"],
+          "description": "Selected payment method."
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["PAID", "PENDING"],
+          "description": "Payment transaction status."
+        },
+        "bookingStatus": {
+          "type": "string",
+          "enum": ["UPCOMING", "COMPLETED", "CANCELLED"],
+          "description": "Lifecycle status of the Puja booking."
+        },
+        "panditName": {
+          "type": "string",
+          "description": "Assigned Vaidik Acharya / Pandit Ji name."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when booking was created (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when booking was last updated (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "yajmanName",
+        "yajmanPhone",
+        "yajmanAddress",
+        "gotra",
+        "pujaId",
+        "pujaTitle",
+        "pujaDate",
+        "timeSlot",
+        "includeSamagri",
+        "specialInstructions",
+        "basePrice",
+        "samagriPrice",
+        "totalAmount",
+        "platformCommission",
+        "panditPayout",
+        "paymentMethod",
+        "paymentStatus",
+        "bookingStatus",
+        "panditName",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Stores isolated user profile and Pandit Ji online/offline status for each authenticated user."
+    },
+    "/bookings/{bookingId}": {
+      "schema": {
+        "$ref": "#/entities/PujaBooking"
+      },
+      "description": "Stores Puja bookings scoped to the authenticated userId with full price and commission breakdown."
+    }
+  }
+}
