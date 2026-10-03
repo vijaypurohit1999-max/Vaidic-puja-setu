@@ -54,13 +54,14 @@ abstract class PujaDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: PujaDatabase? = null
 
+        @Suppress("DEPRECATION")
         fun getInstance(context: Context): PujaDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     PujaDatabase::class.java,
                     "vaidik_puja_db"
-                ).fallbackToDestructiveMigration(true).build()
+                ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }

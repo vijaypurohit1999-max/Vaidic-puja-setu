@@ -5,14 +5,18 @@ plugins {
   alias(libs.plugins.secrets)
 }
 
+if (gradle.gradleVersion.startsWith("8.")) {
+  apply(plugin = "org.jetbrains.kotlin.android")
+}
+
 android {
   namespace = "com.example"
-  compileSdk { version = release(36) { minorApiLevel = 1 } }
+  compileSdk = if (gradle.gradleVersion.startsWith("8.")) 34 else 36
 
   defaultConfig {
     applicationId = "com.aistudio.pujabooking.vykshm"
     minSdk = 24
-    targetSdk = 36
+    targetSdk = if (gradle.gradleVersion.startsWith("8.")) 34 else 36
     versionCode = 1
     versionName = "1.0"
 
