@@ -26,6 +26,15 @@ interface PujaDao {
     @Query("UPDATE user_profiles SET isPanditOnline = :isOnline, updatedAtMillis = :updatedAt WHERE userId = :userId")
     suspend fun updatePanditOnlineStatus(userId: String, isOnline: Boolean, updatedAt: Long)
 
+    @Query("SELECT * FROM user_profiles WHERE UPPER(referralCode) = UPPER(:referralCode) LIMIT 1")
+    suspend fun findUserByReferralCode(referralCode: String): UserProfile?
+
+    @Query("UPDATE user_profiles SET vedicCoins = vedicCoins + :coins, updatedAtMillis = :updatedAt WHERE userId = :userId")
+    suspend fun incrementVedicCoins(userId: String, coins: Int, updatedAt: Long)
+
+    @Query("UPDATE user_profiles SET appliedReferralCode = :referralCode, updatedAtMillis = :updatedAt WHERE userId = :userId")
+    suspend fun updateAppliedReferralCode(userId: String, referralCode: String, updatedAt: Long)
+
     @Query("SELECT * FROM puja_bookings ORDER BY createdAtMillis DESC")
     fun observeAllBookings(): Flow<List<PujaBooking>>
 
@@ -44,7 +53,7 @@ interface PujaDao {
 
 @Database(
     entities = [UserProfile::class, PujaBooking::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class PujaDatabase : RoomDatabase() {

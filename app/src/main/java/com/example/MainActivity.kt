@@ -44,6 +44,7 @@ import androidx.compose.material.icons.filled.Architecture
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CreditCard
@@ -60,6 +61,8 @@ import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SelfImprovement
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material.icons.filled.SupportAgent
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.outlined.Architecture
@@ -119,6 +122,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.data.model.PaymentMethodOption
 import com.example.data.model.PujaBooking
 import com.example.data.model.PujaServiceItem
+import com.example.data.model.ReferralApplyResult
 import com.example.data.model.UserProfile
 import com.example.data.model.UserRole
 import com.example.data.model.VaidikCatalog
@@ -238,6 +242,13 @@ fun VaidikPujaMainScreen(
 ) {
     val activeRole by viewModel.activeRole.collectAsStateWithLifecycle()
     val statusBanner by viewModel.statusBannerMessage.collectAsStateWithLifecycle()
+    val profileUiState by viewModel.userProfileState.collectAsStateWithLifecycle()
+    val referralCodeInput by viewModel.referralCodeInput.collectAsStateWithLifecycle()
+    val referralResult by viewModel.referralResult.collectAsStateWithLifecycle()
+
+    val currentUserProfile = (profileUiState as? UiState.Success<UserProfile?>)?.data
+    val vedicCoins = currentUserProfile?.vedicCoins ?: 100
+    val myReferralCode = currentUserProfile?.referralCode ?: "VAIDIK${verifiedPhone.takeLast(4)}"
 
     // Home screen always loads as the default launch screen
     var currentTab by rememberSaveable {
@@ -264,7 +275,7 @@ fun VaidikPujaMainScreen(
                             color = Color.White
                         )
                         Text(
-                            text = "मोबाइल: +91-$verifiedPhone (${if (activeRole == UserRole.YAJMAN) "यजमान" else "पंडित जी"})",
+                            text = "+91-$verifiedPhone • 🪙 $vedicCoins वैदिक कॉइन्स (${if (activeRole == UserRole.YAJMAN) "यजमान" else "पंडित जी"})",
                             style = MaterialTheme.typography.labelSmall,
                             color = PitambaraLight
                         )
@@ -427,6 +438,13 @@ fun VaidikPujaMainScreen(
                 MainDestination.HOME -> HomeScreenContent(
                     activeRole = activeRole,
                     verifiedPhone = verifiedPhone,
+                    vedicCoins = vedicCoins,
+                    myReferralCode = myReferralCode,
+                    appliedReferralCode = currentUserProfile?.appliedReferralCode ?: "",
+                    referralCodeInput = referralCodeInput,
+                    referralResult = referralResult,
+                    onReferralCodeInputChange = viewModel::updateReferralCodeInput,
+                    onApplyReferralClick = viewModel::applyReferralCode,
                     onRoleSelected = { role ->
                         viewModel.setActiveRole(role)
                         if (role == UserRole.PANDIT) {
@@ -468,6 +486,13 @@ fun VaidikPujaMainScreen(
 fun HomeScreenContent(
     activeRole: UserRole,
     verifiedPhone: String,
+    vedicCoins: Int,
+    myReferralCode: String,
+    appliedReferralCode: String,
+    referralCodeInput: String,
+    referralResult: ReferralApplyResult?,
+    onReferralCodeInputChange: (String) -> Unit,
+    onApplyReferralClick: () -> Unit,
     onRoleSelected: (UserRole) -> Unit,
     onOpenDummyOtpScreen: () -> Unit,
     onBookPujaSelected: (PujaServiceItem) -> Unit,
@@ -581,6 +606,194 @@ fun HomeScreenContent(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 0.5 Referral Verification & 50 Vedic Coins Reward Card (/api/user/apply-referral)
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("referral_verification_card"),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                            Box(
+                                modifier = Modifier
+                                    .size(38.dp)
+                                    .clip(CircleShape)
+                                    .background(PitambaraGold),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CardGiftcard,
+                                    contentDescription = "Vedic Coins Referral",
+                                    tint = KumkumDark,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = "रेफ़रल एवं वैदिक कॉइन्स (Refer & Earn 50 Coins)",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "आपका कोड: $myReferralCode • दोनों को +50-50 वैदिक कॉइन्स",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                        Surface(
+                            color = PitambaraLight,
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier.testTag("vedic_coins_badge")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Stars,
+                                    contentDescription = null,
+                                    tint = KumkumMaroon,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(
+                                    text = "$vedicCoins कॉइन्स",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = KumkumDark
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Quick Demo Referral Code Chips (VAIDIK50, BAGALA108) + Share My Code
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        listOf("VAIDIK50", "BAGALA108").forEach { sampleCode ->
+                            FilterChip(
+                                selected = referralCodeInput.equals(sampleCode, ignoreCase = true),
+                                onClick = { onReferralCodeInputChange(sampleCode) },
+                                label = { Text("मित्र कोड: $sampleCode") },
+                                modifier = Modifier.testTag("sample_referral_chip_$sampleCode")
+                            )
+                        }
+                        OutlinedButton(
+                            onClick = {
+                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(
+                                        Intent.EXTRA_TEXT,
+                                        "Vaidik Puja ऐप पर मेरा रेफ़रल कोड $myReferralCode उपयोग करें और पाएं 50 वैदिक कॉइन्स!"
+                                    )
+                                }
+                                context.startActivity(Intent.createChooser(shareIntent, "Share Referral Code"))
+                            },
+                            shape = RoundedCornerShape(10.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                            modifier = Modifier.testTag("share_my_referral_button")
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = "Share Referral Code",
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("शेयर ($myReferralCode)", style = MaterialTheme.typography.labelSmall)
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = referralCodeInput,
+                            onValueChange = onReferralCodeInputChange,
+                            label = { Text("रेफ़रल कोड दर्ज करें (Referral Code)") },
+                            singleLine = true,
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("input_referral_code")
+                        )
+                        Button(
+                            onClick = onApplyReferralClick,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = KumkumMaroon,
+                                contentColor = Color.White
+                            ),
+                            modifier = Modifier
+                                .height(54.dp)
+                                .testTag("apply_referral_button")
+                        ) {
+                            Text(
+                                text = "लागू करें (+50)",
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+
+                    if (appliedReferralCode.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "✓ सत्यापित रेफ़रल कोड: $appliedReferralCode (+50 वैदिक कॉइन्स प्राप्त)",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = SacredGreen,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    referralResult?.let { res ->
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Surface(
+                            color = if (res.success) SacredGreen.copy(alpha = 0.12f) else MaterialTheme.colorScheme.errorContainer,
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("referral_result_box")
+                        ) {
+                            Column(modifier = Modifier.padding(10.dp)) {
+                                Text(
+                                    text = res.message,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (res.success) SacredGreen else MaterialTheme.colorScheme.onErrorContainer
+                                )
+                                if (res.success) {
+                                    Text(
+                                        text = "आपका नया बैलेंस: ${res.newUserUpdatedCoins} कॉइन्स • मित्र (${res.referrerName}) का बैलेंस: ${res.referrerUpdatedCoins} कॉइन्स",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                                 }
                             }
                         }

@@ -45,8 +45,20 @@ data class UserProfile(
     val specialInstructions: String = "",
     val isPanditOnline: Boolean = true,
     val otpVerified: Boolean = false,
+    val referralCode: String = "VAIDIK108",
+    val vedicCoins: Int = 100,
+    val appliedReferralCode: String = "",
     val createdAtMillis: Long = System.currentTimeMillis(),
     val updatedAtMillis: Long = System.currentTimeMillis()
+)
+
+data class ReferralApplyResult(
+    val success: Boolean,
+    val message: String,
+    val rewardCoins: Int = 0,
+    val newUserUpdatedCoins: Int = 0,
+    val referrerName: String = "",
+    val referrerUpdatedCoins: Int = 0
 )
 
 @Entity(tableName = "puja_bookings")

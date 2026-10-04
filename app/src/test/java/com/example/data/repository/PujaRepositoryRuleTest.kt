@@ -92,4 +92,35 @@ class PujaRepositoryRuleTest {
         assertEquals("rajesh.sharma@vaidikpuja.org", profile?.email)
         assertEquals(false, profile?.isPanditOnline)
     }
+
+    @Test
+    fun applyReferral_validAndInvalidCode_awards50VedicCoinsToBothUsers() = runBlocking {
+        val newUserId = "mobile_9876543210"
+        repository.seedDemoBookingsIfEmpty(newUserId)
+        repository.saveUserProfile(
+            userId = newUserId,
+            name = "Rajesh Sharma",
+            phone = "9876543210",
+            email = "rajesh.sharma@vaidikpuja.org",
+            address = "108 Mahakal Marg, Ujjain",
+            gotra = "Kashyap",
+            role = "YAJMAN",
+            preferredPuja = "Bagalamukhi Havan Poojan",
+            specialInstructions = "Sankalp",
+            isPanditOnline = true,
+            otpVerified = true
+        )
+
+        // 1. Invalid code should return "अमान्य रेफ़रल कोड"
+        val invalidResult = repository.applyReferral(newUserId, "INVALID999")
+        assertEquals(false, invalidResult.success)
+        assertEquals("अमान्य रेफ़रल कोड", invalidResult.message)
+
+        // 2. Valid code ("VAIDIK50") should award 50 Vedic Coins to both referrer and newUserId
+        val validResult = repository.applyReferral(newUserId, "VAIDIK50")
+        assertTrue(validResult.success)
+        assertEquals("बधाई हो! आपको और आपके मित्र को 50 वैदिक कॉइन्स मिले।", validResult.message)
+        assertEquals(150, validResult.newUserUpdatedCoins)
+        assertEquals(150, validResult.referrerUpdatedCoins)
+    }
 }

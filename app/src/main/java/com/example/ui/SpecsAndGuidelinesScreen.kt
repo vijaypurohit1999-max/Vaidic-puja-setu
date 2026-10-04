@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Architecture
 import androidx.compose.material.icons.filled.Calculate
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Card
@@ -145,6 +146,45 @@ private val hinglishSpecSections = listOf(
             "3. Dual-Language Clarity (हिंदी + Hinglish): Sabhi labels me Devnagari Hindi ke saath English/Hinglish terms diye gaye hain (उदा. 'ईमेल आईडी / Email ID', 'गोत्र / Gotra', 'मुहूर्त समय / Time Slot') taaki har umra ke Yajman aur Pandit Ji aasani se use kar sakein.",
             "4. One-Tap Action Affordances: Login par सीधा Mobile OTP flow, Home screen par prominent 'पूजा बुक करें (Book Puja)' CTA, aur Pandit Dashboard par har booking card me 48dp+ touch target wala हरा 'Call Yajman (यजमान को कॉल करें)' button."
         )
+    ),
+    SpecSectionBlock(
+        badge = "STEP 5 • REFERRAL & VEDIC COINS",
+        title = "Referral Verification & 50 Vedic Coins API (रेफ़रल एवं वैदिक कॉइन्स)",
+        subtitle = "POST /api/user/apply-referral + Room DAO Atomic Reward Logic",
+        icon = Icons.Default.CardGiftcard,
+        points = listOf(
+            "1. Referrer Lookup (रेफ़रर खोजें): User dwara dale gaye referralCode (जैसे 'VAIDIK50' या 'BAGALA108') se UserProfile table me referrer dhoondha jata hai. Yadi code invalid ho to 'अमान्य रेफ़रल कोड' return hota hai.",
+            "2. Dual 50-50 Vedic Coins Reward (दोनों को 50-50 वैदिक कॉइन्स): Valid referral code par REWARD_COINS = 50 dono users (referrer._id aur newUserId) ke vedicCoins balance me atomic increment (\$inc / SQL + 50) kiya jata hai.",
+            "3. Confirmation Response: 'बधाई हो! आपको और आपके मित्र को 50 वैदिक कॉइन्स मिले।' message ke saath TopAppBar aur Home Screen par live Vedic Coins balance update ho jata hai."
+        ),
+        codeSnippet = """
+/**
+ * Referral Verification Route (Backend + Android Repository Logic)
+ */
+app.post('/api/user/apply-referral', async (req, res) => {
+  try {
+    const { newUserId, referralCode } = req.body;
+
+    // 1. Referrer ढूँढें
+    const referrer = await User.findOne({ referralCode });
+    if (!referrer) {
+      return res.status(400).json({ success: false, message: "अमान्य रेफ़रल कोड" });
+    }
+
+    // 2. दोनों यूज़र्स को 50-50 वैदिक कॉइन्स (Reward Points) दें
+    const REWARD_COINS = 50;
+    await User.findByIdAndUpdate(referrer._id, { ${'$'}inc: { vedicCoins: REWARD_COINS } });
+    await User.findByIdAndUpdate(newUserId, { ${'$'}inc: { vedicCoins: REWARD_COINS } });
+
+    return res.status(200).json({
+      success: true,
+      message: `बधाई हो! आपको और आपके मित्र को ${'$'}{REWARD_COINS} वैदिक कॉइन्स मिले।`,
+    });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: "सर्वर त्रुटि" });
+  }
+});
+        """.trimIndent()
     )
 )
 

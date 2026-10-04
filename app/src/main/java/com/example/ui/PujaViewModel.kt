@@ -7,6 +7,7 @@ import com.example.data.model.BookingDraft
 import com.example.data.model.PaymentMethodOption
 import com.example.data.model.PujaBooking
 import com.example.data.model.PujaServiceItem
+import com.example.data.model.ReferralApplyResult
 import com.example.data.model.UserProfile
 import com.example.data.model.UserRole
 import com.example.data.model.VaidikCatalog
@@ -109,6 +110,12 @@ class PujaViewModel(
     private val _statusBannerMessage = MutableStateFlow<String?>(null)
     val statusBannerMessage: StateFlow<String?> = _statusBannerMessage.asStateFlow()
 
+    private val _referralCodeInput = MutableStateFlow("VAIDIK50")
+    val referralCodeInput: StateFlow<String> = _referralCodeInput.asStateFlow()
+
+    private val _referralResult = MutableStateFlow<ReferralApplyResult?>(null)
+    val referralResult: StateFlow<ReferralApplyResult?> = _referralResult.asStateFlow()
+
     private val _isSubmitting = MutableStateFlow(false)
     val isSubmitting: StateFlow<Boolean> = _isSubmitting.asStateFlow()
 
@@ -203,6 +210,20 @@ class PujaViewModel(
 
     fun clearBannerMessage() {
         _statusBannerMessage.value = null
+    }
+
+    fun updateReferralCodeInput(value: String) {
+        _referralCodeInput.value = value.uppercase(Locale.US).take(20)
+        _referralResult.value = null
+    }
+
+    fun applyReferralCode() {
+        val code = _referralCodeInput.value.trim()
+        viewModelScope.launch {
+            val result = repository.applyReferral(currentUserId, code)
+            _referralResult.value = result
+            _statusBannerMessage.value = result.message
+        }
     }
 
     fun saveRegistrationProfile(onSuccess: () -> Unit = {}) {
